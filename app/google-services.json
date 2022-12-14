@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "977932169443",
+    "project_id": "facilentregas-a3e23",
+    "storage_bucket": "facilentregas-a3e23.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:977932169443:android:0dcdbff1b9f802e8b215d6",
+        "android_client_info": {
+          "package_name": "com.herorickystudios.facilentregas"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "977932169443-jies7i4d7p402iapd8ttkfmu11mvhuo6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCHbZqladYa2MWWL9JDZXEHX3VxTihs7Ew"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "977932169443-jies7i4d7p402iapd8ttkfmu11mvhuo6.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
