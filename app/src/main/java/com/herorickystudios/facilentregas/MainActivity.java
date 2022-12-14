@@ -117,13 +117,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                 DocumentSnapshot document = task.getResult();
-                if (document.getString("statusDaConta").equals("Ativo")) {
                     if (document.exists()) {
                         setTitle("Lista de itens para entrega proximos a você");
                         nomeUser = document.getString("nameCompleteUser");
                         userLatitude = document.getString("Latitude");
                         userLongitude = document.getString("Longitude");
-
+                        if (document.getString("statusDaConta").equals("Ativo")) {
                         Geocoder geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
 
                         usersDb.collection("Solicitacoes-Entregas").whereNotEqualTo("statusDoProduto", "Entregue").get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
@@ -182,33 +181,33 @@ public class MainActivity extends AppCompatActivity {
                                 }
                             }
                         });
-                    }
-                }else if (document.getString("statusDaConta").equals("Banido")) {
-                    new AlertDialog.Builder(MainActivity.this)
-                            .setTitle("Sua Conta foi banida!")
-                            .setMessage("Sua Conta foi banida ou desativada, caso seja um engano, por favor, me contate via Email!")
-                            .setCancelable(false)
-                            .setNegativeButton("Contestar", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    Intent emailIntent = new Intent(Intent.ACTION_SENDTO, Uri.fromParts(
-                                            "mailto", "ricojn9@gmail.com", null));
-                                    emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Fui Banido do Pede Facil Entregadores");
-                                    emailIntent.putExtra(Intent.EXTRA_TEXT, "");
-                                    startActivity(Intent.createChooser(emailIntent, "Send email..."));
-                                }
-                            })
-                            .setPositiveButton("Deslogar", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
+                    }else if (document.getString("statusDaConta").equals("Banido")) {
+                            new AlertDialog.Builder(MainActivity.this)
+                                    .setTitle("Sua Conta foi banida!")
+                                    .setMessage("Sua Conta foi banida ou desativada, caso seja um engano, por favor, me contate via Email!")
+                                    .setCancelable(false)
+                                    .setNegativeButton("Contestar", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            Intent emailIntent = new Intent(Intent.ACTION_SENDTO, Uri.fromParts(
+                                                    "mailto", "ricojn9@gmail.com", null));
+                                            emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Fui Banido do Pede Facil Entregadores");
+                                            emailIntent.putExtra(Intent.EXTRA_TEXT, "");
+                                            startActivity(Intent.createChooser(emailIntent, "Send email..."));
+                                        }
+                                    })
+                                    .setPositiveButton("Deslogar", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
 
-                                    FirebaseAuth.getInstance().signOut();
+                                            FirebaseAuth.getInstance().signOut();
 
-                                    Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-                                    startActivity(intent);
+                                            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+                                            startActivity(intent);
 
-                                }
-                            }).show();
+                                        }
+                                    }).show();
+                        }
                 }
             }
         });
