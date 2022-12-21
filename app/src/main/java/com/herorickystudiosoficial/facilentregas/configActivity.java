@@ -1,4 +1,4 @@
-package com.herorickystudios.facilentregas;
+package com.herorickystudiosoficial.facilentregas;
 
 import android.content.Intent;
 import android.location.Address;
