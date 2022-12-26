@@ -86,8 +86,9 @@ public class RegisterActivity extends AppCompatActivity {
         editChavePublica.setVisibility(View.INVISIBLE);
         textStripeSaibaMais.setVisibility(View.INVISIBLE);
         textStripeAviso.setVisibility(View.INVISIBLE);
-
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
+
         updateGPS();
     }
 
@@ -116,117 +117,202 @@ public class RegisterActivity extends AppCompatActivity {
             typeACC = "Loja";
         }
 
-        if(editNome.getText().toString().equals("")
-                || editIdade.getText().toString().equals("")
-                || editCPF.getText().toString().equals("")
-                || editEmail.getText().toString().equals("")
-                || editSenha.getText().toString().equals(""))
-        {
-            Toast.makeText(this, "Preencha todos os campos!", Toast.LENGTH_SHORT).show();
+        if(typeACC.equals("Loja")){
 
-        }else{
-            FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, senha).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                @Override
-                public void onComplete(@NonNull Task<AuthResult> task) {
+            if(editNome.getText().toString().equals("")
+                    || editIdade.getText().toString().equals("")
+                    || editCPF.getText().toString().equals("")
+                    || editEmail.getText().toString().equals("")
+                    || editSenha.getText().toString().equals("")
+                    || localização.equals(""))
+            {
+                Toast.makeText(this, "Preencha todos os campos!", Toast.LENGTH_SHORT).show();
 
+            }else{
+                FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, senha).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        getUID = FirebaseAuth.getInstance().getUid();
 
-                    if(typeACC.equals("Loja")){
-                        Geocoder geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
+                        if(typeACC.equals("Loja")){
+                            Geocoder geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
 
-                        localização = editEnderecoLoja.getText().toString();
+                            localização = editEnderecoLoja.getText().toString();
 
-                        try {
-                            List addressList = geocoder.getFromLocationName(editEnderecoLoja.getText().toString(), 1);
-                            if (addressList != null && addressList.size() > 0) {
+                            try {
+                                List addressList = geocoder.getFromLocationName(editEnderecoLoja.getText().toString(), 1);
+                                if (addressList != null && addressList.size() > 0) {
 
-                                if(editEnderecoLoja.getText().toString().equals("")){
-                                    Toast.makeText(RegisterActivity.this, "Por favor, preencha o campo de endereço.", Toast.LENGTH_SHORT).show();
-                                }else{
+                                    if(editEnderecoLoja.getText().toString().equals("")){
+                                        Toast.makeText(RegisterActivity.this, "Por favor, preencha o campo de endereço.", Toast.LENGTH_SHORT).show();
+                                    }else{
 
-                                    Address address = (Address) addressList.get(0);
-                                    StringBuilder sb = new StringBuilder();
+                                        Address address = (Address) addressList.get(0);
+                                        StringBuilder sb = new StringBuilder();
 
-                                    sb.append(address.getLatitude()).append("\n");
-                                    sb.append(address.getLongitude()).append("\n");
+                                        sb.append(address.getLatitude()).append("\n");
+                                        sb.append(address.getLongitude()).append("\n");
 
-                                    //Reconverte para Lat e long
+                                        //Reconverte para Lat e long
 
-                                    latitude = String.valueOf(address.getLatitude());
-                                    longitude = String.valueOf(address.getLongitude());
+                                        latitude = String.valueOf(address.getLatitude());
+                                        longitude = String.valueOf(address.getLongitude());
 
-                                    System.out.println("Em Latitude e longitude " + latitude + " " +  longitude);
+                                        System.out.println("Em Latitude e longitude " + latitude + " " +  longitude);
+                                    }
                                 }
+                            } catch (IOException e) {
+                                e.printStackTrace();
                             }
-                        } catch (IOException e) {
-                            e.printStackTrace();
+
+                            Map<String, Object> user = new HashMap<>();
+                            user.put("nameCompleteUser", nome);
+                            user.put("statusDaConta", "Ativo");
+                            user.put("idadeUser", idade);
+                            user.put("CPF", CPF);
+                            user.put("Email", email);
+                            user.put("Localização", localização);
+                            user.put("Tipo de conta", typeACC);
+                            user.put("Latitude", latitude);
+                            user.put("Longitude", longitude);
+                            user.put("uid", getUID.replace(" ", ""));
+
+                            DocumentReference setDB = referencia.collection(typeACC).document(getUID);
+
+                            setDB.set(user).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                @Override
+                                public void onSuccess(Void unused) {
+                                    //Starta a Activity
+                                    Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
+                                    startActivity(intent);
+                                }
+                            }).addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    Map<String, Object> errorDb = new HashMap<>();
+                                    errorDb.put("CadastroError", "Erro no Cadastro: "+ e);
+                                    DocumentReference setDB = referencia.collection("ErrorDB").document(getUID);
+
+                                    System.out.println("Ocorreu um erro: "+ e);
+                                }
+                            });
+
                         }
+
+                        System.out.println("String" + getUID);
+
                     }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
 
-                    getUID = FirebaseAuth.getInstance().getUid();
+                        Map<String, Object> errorC = new HashMap<>();
+                        errorC.put("CadastroError", "Erro no Cadastro: "+ e);
+                        DocumentReference setDB = referencia.collection("ErrorDB").document(getUID);
 
-                    Map<String, Object> user = new HashMap<>();
-                    user.put("nameCompleteUser", nome);
-                    user.put("statusDaConta", "Ativo");
-                    user.put("idadeUser", idade);
-                    user.put("CPF", CPF);
-                    user.put("Email", email);
-                    user.put("Localização", localização);
-                    user.put("Tipo de conta", typeACC);
-                    user.put("Latitude", latitude);
-                    user.put("Longitude", longitude);
-                    user.put("uid", getUID.replace(" ", ""));
+                        System.out.println("Ocorreu um erro: "+ e);
+                    }
+                });
+            }
+        }
+        if(typeACC.equals("Entregador")){
 
-                    System.out.println("String" + getUID);
+            if(editNome.getText().toString().equals("")
+                    || editIdade.getText().toString().equals("")
+                    || editCPF.getText().toString().equals("")
+                    || editEmail.getText().toString().equals("")
+                    || editSenha.getText().toString().equals("")
+                    || editChaveSecreta.getText().equals("")
+                    || editChavePublica.getText().equals(""))
+            {
+                Toast.makeText(this, "Preencha todos os campos!", Toast.LENGTH_SHORT).show();
 
-                    if(typeACC.equals("Entregador")){
-                        if(editChaveSecreta.getText().toString().equals("") || editChavePublica.getText().toString().equals("")){
+            }else{
+                if(publicKey.contains("pk_live") || secretKey.contains("sk_live")){
 
-                            Toast.makeText(RegisterActivity.this, "Preencha o campo das chaves!", Toast.LENGTH_SHORT).show();
+                    FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, senha).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                        @Override
+                        public void onComplete(@NonNull Task<AuthResult> task) {
+                            getUID = FirebaseAuth.getInstance().getUid();
 
-                        }else{
-
+                            Map<String, Object> user = new HashMap<>();
+                            user.put("nameCompleteUser", nome);
+                            user.put("statusDaConta", "Ativo");
+                            user.put("idadeUser", idade);
+                            user.put("CPF", CPF);
+                            user.put("Email", email);
+                            user.put("Localização", localização);
+                            user.put("Tipo de conta", typeACC);
+                            user.put("Latitude", latitude);
+                            user.put("Longitude", longitude);
+                            user.put("uid", getUID.replace(" ", ""));
                             user.put("publicKey", publicKey);
                             user.put("secretKey", secretKey);
 
-                        }
+                            DocumentReference setDB = referencia.collection(typeACC).document(getUID);
 
+                            setDB.set(user).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                @Override
+                                public void onSuccess(Void unused) {
 
-                    }
+                                    //Starta a Activity
+                                    Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
+                                    startActivity(intent);
 
-                    DocumentReference setDB = referencia.collection(typeACC).document(getUID);
+                                }
+                            }).addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    Map<String, Object> errorDb = new HashMap<>();
+                                    errorDb.put("CadastroError", "Erro no Cadastro: "+ e);
+                                    DocumentReference setDB = referencia.collection("ErrorDB").document(getUID);
 
-                    setDB.set(user).addOnSuccessListener(new OnSuccessListener<Void>() {
-                        @Override
-                        public void onSuccess(Void unused) {
+                                    System.out.println("Ocorreu um erro: "+ e);
+                                }
+                            });
+
+                            System.out.println("String" + getUID);
 
                         }
                     }).addOnFailureListener(new OnFailureListener() {
                         @Override
                         public void onFailure(@NonNull Exception e) {
-                            Map<String, Object> errorDb = new HashMap<>();
-                            errorDb.put("CadastroError", "Erro no Cadastro: "+ e);
+
+                            Map<String, Object> errorC = new HashMap<>();
+                            errorC.put("CadastroError", "Erro no Cadastro: "+ e);
                             DocumentReference setDB = referencia.collection("ErrorDB").document(getUID);
 
                             System.out.println("Ocorreu um erro: "+ e);
                         }
                     });
 
-                    //Starta a Activity
-                    Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
-                    startActivity(intent);
+                }else{
+
+                    new AlertDialog.Builder(RegisterActivity.this)
+                            .setTitle("Aviso!")
+                            .setMessage("A chave digitada está incorreta, por favor, faça o registro na stripe.com e coloque a chave publicavel e a chave secreta!")
+                            .setCancelable(true)
+                            .setNegativeButton("Acessar Stripe", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+
+                                    String url = "https://stripe.com/br";
+                                    Intent i = new Intent(Intent.ACTION_VIEW);
+                                    i.setData(Uri.parse(url));
+                                    startActivity(i);
+
+                                }
+                            })
+                            .setPositiveButton("Dispersar", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+
+                                }
+                            }).show();
 
                 }
-            }).addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
+            }
 
-                    Map<String, Object> errorC = new HashMap<>();
-                    errorC.put("CadastroError", "Erro no Cadastro: "+ e);
-                    DocumentReference setDB = referencia.collection("ErrorDB").document(getUID);
-
-                    System.out.println("Ocorreu um erro: "+ e);
-                }
-            });
         }
     }
     public void hitnome(View view){
@@ -236,7 +322,6 @@ public class RegisterActivity extends AppCompatActivity {
         editNome.setHint("Seu nome completo");
         editCPF.setHint("CPF");
         editIdade.setHint("Sua idade");
-
         editChaveSecreta.setVisibility(View.VISIBLE);
         editChavePublica.setVisibility(View.VISIBLE);
 
@@ -252,7 +337,6 @@ public class RegisterActivity extends AppCompatActivity {
         editNome.setHint("Razão Social / Nome da Loja");
         editCPF.setHint("CNPJ");
         editIdade.setHint("Tempo de Atuação (Em anos)");
-
         editEnderecoLoja.setVisibility(View.VISIBLE);
 
         editChaveSecreta.setVisibility(View.INVISIBLE);

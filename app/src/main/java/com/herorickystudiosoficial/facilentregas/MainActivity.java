@@ -56,6 +56,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        startService(new Intent(getBaseContext(), NotificationService.class));
+        startService(new Intent(getBaseContext(), PushNotificationService.class));
+
 
         viewEntregas = findViewById(R.id.listEntregas);
 
@@ -254,5 +257,18 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+    @Override
+    protected void onPause() {
+        startService(new Intent(getBaseContext(), PushNotificationService.class));
+        startService(new Intent(getBaseContext(), NotificationService.class));
+        super.onPause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        startService(new Intent(getBaseContext(), NotificationService.class));
+
+        super.onDestroy();
     }
 }
